@@ -12,11 +12,6 @@ df = pd.read_csv("C:/Users/abir/Desktop/Peupliers/data_final/tableaux/df_px_filt
 # Liste des métriques à vérifier pour les valeurs manquantes
 metriques = ['grid_PAI', 'grid_CC', 'grid_MOCH', 'grid_ENL']
 
-# Pré-traitement des données
-df['date'] = pd.to_datetime(df['date'].astype(str), errors='coerce', format='%Y')
-df['year'] = df['date'].dt.year  # Extraire uniquement l'année
-df['lidar_date'] = pd.to_datetime(df['lidar_date'], errors='coerce')  # Convertir lidar_date en datetime
-df['lidar_year'] = df['lidar_date'].dt.year  # Extraire l'année de lidar_date
 
 # Définir les couleurs pour chaque source
 source_colors = {
@@ -27,12 +22,6 @@ source_colors = {
     "dep10": "purple"
 }
 
-# Trier les cultivars par nombre de pixels par ordre décroissant
-cultivar_counts = df['cultivar_n'].value_counts()
-sorted_cultivars = [{'label': cultivar, 'value': cultivar} for cultivar in cultivar_counts.index]
-
-# Limiter les valeurs de 'age_plan' entre 1 et 12
-df['age_plan'] = df['age_plan'].apply(lambda x: x if 1 <= x <= 12 else np.nan)
 
 # Initialiser l'application Dash
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
@@ -160,26 +149,6 @@ def update_graphs(cultivars_selectionnes, variable_x, variable_y1, variable_y2):
                 marker=dict(color=color, size=6),
                 name=f"Points {source}"
             ))
-
-        # Calculer les statistiques pour chaque groupe
-        stats = filtered_df.groupby(variable_x)[variable_y].agg(['count', 'mean', 'std']).reset_index()
-        for _, row in stats.iterrows():
-            fig.add_annotation(
-                x=row[variable_x],
-                y=filtered_df[variable_y].max(),  # Position au-dessus du graphique
-                text=(
-                    f"N: {row['count']}<br>"
-                    f"Mean: {row['mean']:.2f}<br>"
-                    f"Std: {row['std']:.2f}"
-                ),
-                showarrow=False,
-                font=dict(size=10),
-                align="center",
-                xanchor="center",
-                yanchor="top",
-                bgcolor="rgba(255, 255, 255, 0.7)",
-                bordercolor="black"
-            )
 
         fig.update_layout(
             title=f"{variable_y} en fonction de {variable_x}",
